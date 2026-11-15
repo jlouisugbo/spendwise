@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spendwise</title>
+    <style>
+      :root {
+        --ink: #1d1b16;
+        --muted: #7a7466;
+        --paper: #f7f3ea;
+        --line: #ded6c4;
+        --out: #a2361f;
+        --in: #2f6b3a;
+        font-family: "Iowan Old Style", Georgia, serif;
+      }
+      body { margin: 0; background: var(--paper); color: var(--ink); }
+      header { padding: 1.5rem 2rem 0.5rem; border-bottom: 2px solid var(--ink); }
+      h1 { margin: 0; font-size: 2rem; letter-spacing: -0.02em; }
+      nav button { font: inherit; background: none; border: 0; padding: 0.5rem 0.9rem; cursor: pointer; color: var(--muted); }
+      nav button[aria-pressed="true"] { color: var(--ink); border-bottom: 3px solid var(--ink); }
+      main { padding: 1.5rem 2rem; max-width: 980px; }
+      table { width: 100%; border-collapse: collapse; font-family: ui-monospace, Menlo, monospace; font-size: 0.85rem; }
+      th, td { text-align: left; padding: 0.45rem 0.4rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+      th { color: var(--muted); font-weight: normal; text-transform: uppercase; font-size: 0.7rem; }
+      .raw { display: block; color: var(--muted); font-size: 0.72rem; }
+      .amt { text-align: right; }
+      .out { color: var(--out); }
+      .in { color: var(--in); }
+      form label { display: block; margin: 0.5rem 0; }
+      form input { font: inherit; }
+      #status { color: var(--muted); min-height: 1.2em; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Spendwise</h1>
+      <nav aria-label="Views">
+        <button data-view="transactions" aria-pressed="true">Transactions</button>
+        <button data-view="merchants" aria-pressed="false">Merchants</button>
+        <button data-view="summary" aria-pressed="false">Monthly summary</button>
+        <button data-view="add" aria-pressed="false">Add transaction</button>
+      </nav>
+    </header>
+
+    <main>
+      <p id="status" role="status"></p>
+
+      <section id="transactions">
+        <label>Category
+          <select id="category-filter"><option value="">All</option></select>
+        </label>
+        <table>
+          <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th class="amt">Amount</th></tr></thead>
+          <tbody id="tx-rows"></tbody>
+        </table>
+      </section>
+
+      <section id="merchants" hidden>
+        <p>Each merchant name and the raw bank descriptors normalized into it.</p>
+        <table>
+          <thead><tr><th>Merchant</th><th>Bank descriptors</th><th>Count</th><th class="amt">Total</th></tr></thead>
+          <tbody id="merchant-rows"></tbody>
+        </table>
+      </section>
+
+      <section id="summary" hidden>
+        <label>Month <input id="month" type="month" value="2026-09" /></label>
+        <table>
+          <thead><tr><th>Category</th><th class="amt">Spent</th></tr></thead>
+          <tbody id="summary-rows"></tbody>
+        </table>
+        <p id="income"></p>
+      </section>
+
+      <section id="add" hidden>
+        <p>New transactions normally arrive from the bank. This form sends one the same way.</p>
+        <form id="add-form">
+          <label>Date <input name="date" type="date" value="2026-10-12" required /></label>
+          <label>Bank description <input name="description" size="50" value="SQ *BLUE BOTTLE COFFEE #118   OAKLAND CA" required /></label>
+          <label>Amount ($, negative = spending) <input name="amount" type="number" step="0.01" value="-6.25" required /></label>
+          <button type="submit">Add</button>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      // No build step, no framework. Every row is filled with textContent (never innerHTML).
+      const CATEGORIES = ["Groceries", "Dining", "Transport", "Shopping", "Subscriptions", "Utilities", "Income", "Other"]; // keep in sync with types.ts
+
+      const $ = (id) => document.getElementById(id);
+      const money = (cents) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+      const status = (msg) => ($("status").textContent = msg);
+
+      async function api(path, options) {
+        const res = await fetch(path, options);
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error?.message ?? res.statusText);
+        return body;
+      }
+
+      function cell(text, className) {
+        const td = document.createElement("td");
+        td.textContent = text;
+        if (className) td.className = className;
+        return td;
+      }
+
+      function rawLine(text) {
+        const span = document.createElement("span");
+        span.className = "raw";
+        span.textContent = text;
+        return span;
+      }
+
+      function fill(tbodyId, rows) {
+        $(tbodyId).replaceChildren(
+          ...rows.map((cells) => {
+            const tr = document.createElement("tr");
+            tr.append(...cells);
+            return tr;
+          }),
+        );
+      }
+
+      async function loadTransactions() {
+        const category = $("category-filter").value;
+        const { transactions } = await api(`/transactions${category ? `?category=${encodeURIComponent(category)}` : ""}`);
+        fill("tx-rows", transactions.map((t) => {
+          const merchant = cell(t.merchant);
+          merchant.append(rawLine(t.rawDescription));
+          return [cell(t.date), merchant, cell(t.category), cell(money(t.amountCents), `amt ${t.amountCents < 0 ? "out" : "in"}`)];
+        }));
+      }
+
+      async function loadMerchants() {
+        const { merchants } = await api("/merchants");
+        fill("merchant-rows", merchants.map((m) => {
+          const raws = cell("");
+          raws.append(...m.rawDescriptions.map(rawLine));
+          return [cell(m.name), raws, cell(m.transactionCount), cell(money(m.totalCents), "amt")];
+        }));
+      }
+
+      async function loadSummary() {
+        const { spendingCents, incomeCents } = await api(`/summary?month=${$("month").value}`);
+        fill("summary-rows", Object.entries(spendingCents)
+          .filter(([, cents]) => cents > 0)
+          .map(([category, cents]) => [cell(category), cell(money(-cents), "amt out")]));
+        $("income").textContent = `Income: ${money(incomeCents)}`;
+      }
+
+      async function addTransaction(form) {
+        const data = new FormData(form);
+        const created = await api("/transactions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            date: data.get("date"),
+            description: data.get("description"),
+            amountCents: Math.round(Number(data.get("amount")) * 100),
+          }),
+        });
+        status(`Added ${created.merchant} (${created.category})`);
+      }
+
+      const loaders = { transactions: loadTransactions, merchants: loadMerchants, summary: loadSummary, add: async () => {} };
+      const report = (e) => status(e.message);
+
+      function show(view) {
+        for (const btn of document.querySelectorAll("nav button")) {
+          btn.setAttribute("aria-pressed", String(btn.dataset.view === view));
+        }
+        for (const section of document.querySelectorAll("main section")) {
+          section.hidden = section.id !== view;
+        }
+        loaders[view]().catch(report);
+      }
+
+      for (const c of CATEGORIES) $("category-filter").add(new Option(c, c));
+      $("category-filter").addEventListener("change", () => loadTransactions().catch(report));
+      $("month").addEventListener("change", () => loadSummary().catch(report));
+      $("add-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        addTransaction(event.target).catch(report);
+      });
+      for (const btn of document.querySelectorAll("nav button")) {
+        btn.addEventListener("click", () => show(btn.dataset.view));
+      }
+      show("transactions");
+    </script>
+  </body>
+</html>

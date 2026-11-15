@@ -1,0 +1,108 @@
+{
+  "transactions": [
+    {
+      "id": "1bcbbbb49f29",
+      "date": "2026-09-01",
+      "rawDescription": "ACME CORP PAYROLL  DIRECT DEP",
+      "merchant": "Acme Corp Payroll",
+      "category": "Income",
+      "amountCents": 315000
+    },
+    {
+      "id": "44915a5abdeb",
+      "date": "2026-09-02",
+      "rawDescription": "SQ *BLUE BOTTLE COFFEE #118   OAKLAND CA",
+      "merchant": "Blue Bottle Coffee",
+      "category": "Dining",
+      "amountCents": -675
+    },
+    {
+      "id": "3d448a11660d",
+      "date": "2026-09-03",
+      "rawDescription": "AMZN Mktp US*2K4L91   Amzn.com/bill WA",
+      "merchant": "Amazon",
+      "category": "Shopping",
+      "amountCents": -4218
+    },
+    {
+      "id": "17b3fff08fd3",
+      "date": "2026-09-04",
+      "rawDescription": "WHOLEFDS OAK #10233   OAKLAND CA",
+      "merchant": "Whole Foods",
+      "category": "Groceries",
+      "amountCents": -8740
+    },
+    {
+      "id": "679c35f3460a",
+      "date": "2026-09-05",
+      "rawDescription": "UBER   TRIP  HELP.UBER.COM CA",
+      "merchant": "Uber",
+      "category": "Transport",
+      "amountCents": -1820
+    },
+    {
+      "id": "d096ccb942c2",
+      "date": "2026-09-06",
+      "rawDescription": "NETFLIX.COM   LOS GATOS CA",
+      "merchant": "Netflix",
+      "category": "Subscriptions",
+      "amountCents": -1549
+    },
+    {
+      "id": "11188d5a685b",
+      "date": "2026-09-12",
+      "rawDescription": "AMAZON.COM*7Y2PL03   SEATTLE WA",
+      "merchant": "Amazon",
+      "category": "Shopping",
+      "amountCents": -2399
+    },
+    {
+      "id": "4322b93e3fc8",
+      "date": "2026-09-14",
+      "rawDescription": "PG&E WEBRECURRING   SAN FRANCISCO CA",
+      "merchant": "Pg&e Webrecurring",
+      "category": "Utilities",
+      "amountCents": -9633
+    },
+    {
+      "id": "5959109909a2",
+      "date": "2026-09-20",
+      "rawDescription": "PAYPAL *SAMS BIKE SHOP   4029357733 CA",
+      "merchant": "Sams Bike Shop",
+      "category": "Other",
+      "amountCents": -6400
+    },
+    {
+      "id": "d1559eea3685",
+      "date": "2026-09-22",
+      "rawDescription": "WHOLE FOODS MARKET #10233   OAKLAND CA",
+      "merchant": "Whole Foods",
+      "category": "Groceries",
+      "amountCents": -6107
+    },
+    {
+      "id": "e60de8583a3d",
+      "date": "2026-10-01",
+      "rawDescription": "ACME CORP PAYROLL  DIRECT DEP",
+      "merchant": "Acme Corp Payroll",
+      "category": "Income",
+      "amountCents": 315000
+    },
+    {
+      "id": "8adbdd000d80",
+      "date": "2026-10-02",
+      "rawDescription": "SQ *BLUE BOTTLE COFFEE #118   OAKLAND CA",
+      "merchant": "Blue Bottle Coffee",
+      "category": "Dining",
+      "amountCents": -725
+    },
+    {
+      "id": "55365c45733a",
+      "date": "2026-10-03",
+      "rawDescription": "AMZN Mktp US*9RT55K2   Amzn.com/bill WA",
+      "merchant": "Amazon",
+      "category": "Shopping",
+      "amountCents": -11845
+    }
+  ]
+}
